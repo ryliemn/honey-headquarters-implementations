@@ -1,10 +1,10 @@
 // $.ajax('https://sheetsu.com/apis/v1.0/64b5c3f8').done(function(data) {
 $.ajax('http://localhost:3000/citizens').done(function(citizens) {
   function getUniqueValuesForField(field, citizens) {
-    const values = ['All'];
-    citizens.forEach((c) => {
-      let v = c[field];
-      if (!values.includes(v)) {
+    var values = ['All'];
+    citizens.forEach(function(c) {
+      var v = c[field];
+      if (values.indexOf(v) === -1) {
         values.push(v);
       }
     });
@@ -12,14 +12,14 @@ $.ajax('http://localhost:3000/citizens').done(function(citizens) {
   }
 
   function populateSelectWithOptions(select, options) {
-    options.forEach((option) => {
+    options.forEach(function(option) {
       $(select).append($("<option>", { value: option, html: option }));
     });
   }
 
-  const characters = getUniqueValuesForField('character', citizens);
-  const hometowns = getUniqueValuesForField('hometown', citizens);
-  const sizes = getUniqueValuesForField('size', citizens);
+  var characters = getUniqueValuesForField('character', citizens);
+  var hometowns = getUniqueValuesForField('hometown', citizens);
+  var sizes = getUniqueValuesForField('size', citizens);
 
   populateSelectWithOptions("#character-select", characters);
   populateSelectWithOptions("#hometown-select", hometowns);

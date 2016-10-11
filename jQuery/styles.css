@@ -1,10 +1,6 @@
-body {
-  margin: 0;
-  padding: 0;
-}
-
 h1 {
-  margin: 20px 5%;
+  font-size: 2em;
+  margin-bottom: 20px;
 }
 
 #hh-menu {
@@ -12,16 +8,15 @@ h1 {
   position: fixed;
   width: 240px;
   height: 100%;
+
+  padding: 20px;
 }
 
-#hh-menu > select {
-  width: 80%;
-  margin-left: 15%;
-  margin-right: 5%;
+.menu-select {
+  width: 90%;
 }
 
-#hh-menu > label {
-  margin-left: 5%;
+.menu-label {
 }
 
 #hh-content {
