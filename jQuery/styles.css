@@ -1,0 +1,30 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  margin: 20px 5%;
+}
+
+#hh-menu {
+  border-right: solid 1px black;
+  position: fixed;
+  width: 240px;
+  height: 100%;
+}
+
+#hh-menu > select {
+  width: 80%;
+  margin-left: 15%;
+  margin-right: 5%;
+}
+
+#hh-menu > label {
+  margin-left: 5%;
+}
+
+#hh-content {
+  margin-left: 240px;
+  padding: 20px 100px;
+}
