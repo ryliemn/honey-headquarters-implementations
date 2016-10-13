@@ -1,12 +1,37 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" />
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
     <title>Honey Headquarters</title>
   </head>
   <body>
-    Hello wolr
+    <div id="menu">
+      <h1>Honey Headquarters</h1>
+
+      <label class="menu-label">
+        Character
+        <select id="character-select" class="menu-select"></select>
+      </label>
+
+      <label class="menu-label">
+        Hometown
+        <select id="hometown-select" class="menu-select"></select>
+      </label>
+      
+      <label class="menu-label">
+        Size
+        <select id="size-select" class="menu-select"></select>
+      </label>
+    </div>
+    <div id="content">
+      Hello wolr
+    </div>
+    
   </body>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  <script src="honeyHeadquarters.js"></script>
+  <script src="ajax.js"></script>
+  <script src="main.js"></script>
 </html>

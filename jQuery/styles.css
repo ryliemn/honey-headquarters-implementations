@@ -1,0 +1,22 @@
+h1 {
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+#menu {
+  border-right: solid 1px black;
+  position: fixed;
+  width: 240px;
+  height: 100%;
+
+  padding: 20px;
+}
+
+.menu-select {
+  width: 100%;
+}
+
+#content {
+  margin-left: 240px;
+  padding: 20px 100px;
+}
