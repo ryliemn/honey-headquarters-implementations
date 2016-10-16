@@ -1,82 +1,113 @@
-function ajax(citizens) {
-  var characters = getUniqueValuesForField('character', citizens);
-  var hometowns = getUniqueValuesForField('hometown', citizens);
-  var sizes = getUniqueValuesForField('size', citizens);
+window.hh = {};
 
-  populateSelectWithOptions("#character-select", characters);
-  populateSelectWithOptions("#hometown-select", hometowns);
-  populateSelectWithOptions("#size-select", sizes);
+window.hh.selectors = {
+  menu: '.menu',
+  content: '.content',
+  nameInput: '#name-input',
+  characterSelect: '#character-select',
+  hometownSelect: '#hometown-select',
+  sizeSelect: '#size-select'
+};
 
-  var selectHandler = function(event) {
-    var params = gatherParams();
-    var filteredCitizens = filter(params, event.data.citizens);
-    redrawContent(filteredCitizens);
+/* Defines functions that interact directly with the DOM */
+window.hh.domManipulation = window.hh.domManipulation || (function() {
+  function populateSelectWithOptions(select, options) {
+    options.forEach(function(option) {
+      $(select).append($('<option>', { value: option, html: option }));
+    });
+  }
+
+  function gatherParams(form) {
+    var selectors = window.hh.selectors;
+
+    var name      = form.find(selectors.nameInput);
+    var character = form.find(selectors.characterSelect);
+    var hometown  = form.find(selectors.hometownSelect);
+    var size      = form.find(selectors.sizeSelect);
+
+    return [
+      { field: 'name', value: name.val() },
+      { field: 'character', value: character.val() },
+      { field: 'hometown', value: hometown.val() },
+      { field: 'size', value: size.val() }
+    ];
+  }
+
+  function redrawContent(contentSelector, citizens) {
+    var content = $(contentSelector);
+    content.empty();
+
+    citizens.forEach(function(citizen) {
+      content.append($('<div>', { class: "citizen", html: citizen.name }));
+    });
+  }
+
+  return {
+    gatherParams: gatherParams,
+    populateSelectWithOptions: populateSelectWithOptions,
+    redrawContent: redrawContent
   };
+})();
 
-  $('#character-select').on('change', { citizens: citizens }, selectHandler);
-  $('#hometown-select').on('change', { citizens: citizens }, selectHandler);
-  $('#size-select').on('change', { citizens: citizens }, selectHandler);
+/* Defines funtions that handle backend logic that handle data, nothing to do with DOM */
+window.hh.logic = window.hh.logic || (function() {
+  function getUniqueValuesForField(field, citizens) {
+    var values = ['All'];
+    citizens.forEach(function(c) {
+      var v = c[field];
+      if (values.indexOf(v) === -1) {
+        values.push(v);
+      }
+    });
+    return values;
+  }
 
-  selectHandler({data: { citizens: citizens }});
-}
+  function filter(params, citizens) {
+    return citizens.filter(function(citizen) {
+      var matchesFilter = true;
 
-function getUniqueValuesForField(field, citizens) {
-  var values = ['All'];
-  citizens.forEach(function(c) {
-    var v = c[field];
-    if (values.indexOf(v) === -1) {
-      values.push(v);
-    }
-  });
-  return values;
-}
+      for (var i = 0; i < params.length && matchesFilter; i++) {
+        var param = params[i];
 
-function populateSelectWithOptions(select, options) {
-  options.forEach(function(option) {
-    $(select).append($('<option>', { value: option, html: option }));
-  });
-}
+        var field = param['field'];
+        var citizenValue = citizen[field];
+        var paramValue = param['value'];
 
-function gatherParams() {
-  var params = [];
+        matchesFilter = paramValue === 'All' || citizenValue.toUpperCase().indexOf(paramValue.toUpperCase()) !== -1;
+      }
+      return matchesFilter;
+    });
+  }
 
-  var characterValue = $('#character-select').val();
-  params.push({field: 'character', value: characterValue});
+  return {
+    getUniqueValuesForField: getUniqueValuesForField,
+    filter: filter
+  };
+})();
 
-  var hometownValue = $('#hometown-select').val();
-  params.push({field: 'hometown', value: hometownValue});
+window.hh.ajax = window.hh.ajax || function(citizens) {
+  var selectors = window.hh.selectors;
+  var DOM = window.hh.domManipulation;
+  var logic = window.hh.logic;
 
-  var sizeValue = $('#size-select').val();
-  params.push({field: 'size', value: sizeValue});
+  var characters = logic.getUniqueValuesForField('character', citizens);
+  var hometowns = logic.getUniqueValuesForField('hometown', citizens);
+  var sizes = logic.getUniqueValuesForField('size', citizens);
 
-  return params;
-}
+  DOM.populateSelectWithOptions(selectors.characterSelect, characters);
+  DOM.populateSelectWithOptions(selectors.hometownSelect, hometowns);
+  DOM.populateSelectWithOptions(selectors.sizeSelect, sizes);
 
-function filter(params, citizens) {
-  var filteredCitizens = citizens.filter(function(citizen) {
-    var matchesFilter = true;
+  $(selectors.characterSelect + "," + selectors.hometownSelect + "," + formHandler.sizeSelect)
+      .on('change', { citizens: citizens }, formHandler);
+  $(selectors.nameInput)
+      .on('input', { citizens: citizens }, formHandler);
 
-    for (var i = 0; i < params.length && matchesFilter; i++) {
-      var param = params[i];
+  formHandler({data: { citizens: citizens }});
 
-      var field = param['field'];
-      var citizenValue = citizen[field];
-      var paramValue = param['value'];
-
-      matchesFilter = paramValue === 'All' || citizenValue === paramValue;
-    }
-
-    return matchesFilter;
-  });
-
-  return filteredCitizens;
-}
-
-function redrawContent(citizens) {
-  var content = $('.content');
-  content.empty();
-
-  citizens.forEach(function(citizen) {
-    content.append($('<div>', { class: "citizen", html: citizen.name }));
-  });
-}
+  function formHandler(event) {
+    var params = DOM.gatherParams($(selectors.menu));
+    var filteredCitizens = logic.filter(params, event.data.citizens);
+    DOM.redrawContent($(selectors.content), filteredCitizens);
+  };
+};
