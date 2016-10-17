@@ -1,6 +1,6 @@
-window.hh = {};
+window.honey = {};
 
-window.hh.selectors = {
+window.honey.selectors = {
   menu: '.menu',
   content: '.content',
   nameInput: '#name-input',
@@ -10,7 +10,7 @@ window.hh.selectors = {
 };
 
 /* Defines functions that interact directly with the DOM */
-window.hh.domManipulation = window.hh.domManipulation || (function() {
+window.honey.domManipulation = window.honey.domManipulation || (function($, selectors) {
   function populateSelectWithOptions(select, options) {
     options.forEach(function(option) {
       $(select).append($('<option>', { value: option, html: option }));
@@ -18,8 +18,6 @@ window.hh.domManipulation = window.hh.domManipulation || (function() {
   }
 
   function gatherParams(form) {
-    var selectors = window.hh.selectors;
-
     var name      = form.find(selectors.nameInput);
     var character = form.find(selectors.characterSelect);
     var hometown  = form.find(selectors.hometownSelect);
@@ -47,10 +45,10 @@ window.hh.domManipulation = window.hh.domManipulation || (function() {
     populateSelectWithOptions: populateSelectWithOptions,
     redrawContent: redrawContent
   };
-})();
+})(jQuery, window.honey.selectors);
 
 /* Defines funtions that handle backend logic that handle data, nothing to do with DOM */
-window.hh.logic = window.hh.logic || (function() {
+window.honey.logic = window.honey.logic || (function() {
   function getUniqueValuesForField(field, citizens) {
     var values = ['All'];
     citizens.forEach(function(c) {
@@ -85,29 +83,31 @@ window.hh.logic = window.hh.logic || (function() {
   };
 })();
 
-window.hh.ajax = window.hh.ajax || function(citizens) {
-  var selectors = window.hh.selectors;
-  var DOM = window.hh.domManipulation;
-  var logic = window.hh.logic;
+window.honey.ajax = window.honey.ajax || (function($, selectors, logic, dom) {
+  function afterCitizenRetrieval(citizens) {
+    var characters = logic.getUniqueValuesForField('character', citizens);
+    var hometowns = logic.getUniqueValuesForField('hometown', citizens);
+    var sizes = logic.getUniqueValuesForField('size', citizens);
 
-  var characters = logic.getUniqueValuesForField('character', citizens);
-  var hometowns = logic.getUniqueValuesForField('hometown', citizens);
-  var sizes = logic.getUniqueValuesForField('size', citizens);
+    dom.populateSelectWithOptions(selectors.characterSelect, characters);
+    dom.populateSelectWithOptions(selectors.hometownSelect, hometowns);
+    dom.populateSelectWithOptions(selectors.sizeSelect, sizes);
 
-  DOM.populateSelectWithOptions(selectors.characterSelect, characters);
-  DOM.populateSelectWithOptions(selectors.hometownSelect, hometowns);
-  DOM.populateSelectWithOptions(selectors.sizeSelect, sizes);
+    $(selectors.characterSelect + "," + selectors.hometownSelect + "," + formHandler.sizeSelect)
+        .on('change', { citizens: citizens }, formHandler);
+    $(selectors.nameInput)
+        .on('input', { citizens: citizens }, formHandler);
 
-  $(selectors.characterSelect + "," + selectors.hometownSelect + "," + formHandler.sizeSelect)
-      .on('change', { citizens: citizens }, formHandler);
-  $(selectors.nameInput)
-      .on('input', { citizens: citizens }, formHandler);
+    formHandler({data: { citizens: citizens }});
 
-  formHandler({data: { citizens: citizens }});
+    function formHandler(event) {
+      var params = dom.gatherParams($(selectors.menu));
+      var filteredCitizens = logic.filter(params, event.data.citizens);
+      dom.redrawContent($(selectors.content), filteredCitizens);
+    };
+  }
 
-  function formHandler(event) {
-    var params = DOM.gatherParams($(selectors.menu));
-    var filteredCitizens = logic.filter(params, event.data.citizens);
-    DOM.redrawContent($(selectors.content), filteredCitizens);
+  return {
+    afterCitizenRetrieval: afterCitizenRetrieval
   };
-};
+})(jQuery, window.honey.selectors, window.honey.logic, window.honey.domManipulation);
