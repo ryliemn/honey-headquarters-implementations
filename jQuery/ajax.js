@@ -3,6 +3,12 @@ window.honey = {};
 window.honey.selectors = {
   menu: '.menu',
   content: '.content',
+  paginator: '.paginator',
+  pageSelect: '#page-select',
+  firstPageButton: '#first-page-button',
+  previousPageButton: '#previous-page-button',
+  nextPageButton: '#next-page-button',
+  lastPageButton: '#last-page-button',
   nameInput: '#name-input',
   characterSelect: '#character-select',
   hometownSelect: '#hometown-select',
@@ -31,8 +37,7 @@ window.honey.domManipulation = window.honey.domManipulation || (function($, sele
     ];
   }
 
-  function redrawContent(contentSelector, citizens) {
-    var content = $(contentSelector);
+  function redrawContent(content, citizens) {
     content.empty();
 
     citizens.forEach(function(citizen) {
@@ -40,10 +45,22 @@ window.honey.domManipulation = window.honey.domManipulation || (function($, sele
     });
   }
 
+  function redrawPageSelect(pageSelect, noOfPages) {
+    pageSelect.empty();
+
+    var currentPage = 1;
+
+    while (currentPage <= noOfPages) {
+      pageSelect.append($('<option>', { value: currentPage, html: currentPage }));
+      currentPage++;
+    }
+  }
+
   return {
     gatherParams: gatherParams,
     populateSelectWithOptions: populateSelectWithOptions,
-    redrawContent: redrawContent
+    redrawContent: redrawContent,
+    redrawPageSelect: redrawPageSelect
   };
 })(jQuery, window.honey.selectors);
 
@@ -60,6 +77,7 @@ window.honey.logic = window.honey.logic || (function() {
     return values;
   }
 
+  /* Calls to filter should normalize page# to 0 indexing before calling */
   function filter(params, citizens) {
     return citizens.filter(function(citizen) {
       var matchesFilter = true;
@@ -93,18 +111,59 @@ window.honey.ajax = window.honey.ajax || (function($, selectors, logic, dom) {
     dom.populateSelectWithOptions(selectors.hometownSelect, hometowns);
     dom.populateSelectWithOptions(selectors.sizeSelect, sizes);
 
-    $(selectors.characterSelect + "," + selectors.hometownSelect + "," + formHandler.sizeSelect)
-        .on('change', { citizens: citizens }, formHandler);
+    $(selectors.characterSelect + "," + selectors.hometownSelect + "," + selectors.sizeSelect)
+        .on('change', { citizens: citizens, page: 1 }, formHandler);
     $(selectors.nameInput)
-        .on('input', { citizens: citizens }, formHandler);
+        .on('input', { citizens: citizens, page: 1 }, formHandler);
 
-    formHandler({data: { citizens: citizens }});
+    $(selectors.pageSelect)
+        .on('change', { citizens: citizens }, pageHandler);
+
+    $(selectors.firstPageButton + "," + selectors.previousPageButton + "," + selectors.nextPageButton + "," + selectors.lastPageButton)
+        .on('click', { citizens: citizens }, pageButtonHandler);
+    
+
+    formHandler({data: { citizens: citizens, page: 1 }});
 
     function formHandler(event) {
+      var page = event.data.page;
+
       var params = dom.gatherParams($(selectors.menu));
       var filteredCitizens = logic.filter(params, event.data.citizens);
-      dom.redrawContent($(selectors.content), filteredCitizens);
+      var pagedCitizens = filteredCitizens.slice((page - 1) * 10, (page - 1) * 10 + 10)
+      dom.redrawContent($(selectors.content), pagedCitizens);
+      if (page === 1) {
+        dom.redrawPageSelect($(selectors.pageSelect), Math.ceil(filteredCitizens.length / 10));
+      }
     };
+
+    function pageHandler(event) {
+      var page = $(this).val();
+      formHandler({data: { citizens: event.data.citizens, page: page }});
+    }
+
+    function pageButtonHandler(event) {
+      var pageSelect = $(selectors.pageSelect);
+
+      var currentPage = Number(pageSelect.val());
+      var maxPage = pageSelect.children().length;
+      var buttonPressed = event.target.id;
+      switch ('#' + buttonPressed) {
+        case selectors.firstPageButton:
+          var newPage = 1;
+          break;
+        case selectors.previousPageButton:
+          var newPage = currentPage === 1 ? 1 : currentPage - 1;
+          break;
+        case selectors.nextPageButton:
+          var newPage = currentPage === maxPage ? maxPage : currentPage + 1;
+          break;
+        case selectors.lastPageButton:
+          var newPage = maxPage;
+      }
+      pageSelect.val(newPage);
+      formHandler({data: { citizens: event.data.citizens, page: newPage }});
+    }
   }
 
   return {
