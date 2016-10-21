@@ -77,7 +77,6 @@ window.honey.logic = window.honey.logic || (function() {
     return values;
   }
 
-  /* Calls to filter should normalize page# to 0 indexing before calling */
   function filter(params, citizens) {
     return citizens.filter(function(citizen) {
       var matchesFilter = true;
