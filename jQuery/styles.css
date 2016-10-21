@@ -3,7 +3,7 @@ h1 {
   margin-bottom: 20px;
 }
 
-#menu {
+.menu {
   border-right: solid 1px black;
   position: fixed;
   width: 240px;
@@ -16,7 +16,7 @@ h1 {
   width: 100%;
 }
 
-#content {
+.content {
   margin-left: 240px;
   padding: 20px 100px;
 }
