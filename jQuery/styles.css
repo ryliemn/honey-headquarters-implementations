@@ -20,3 +20,12 @@ h1 {
   margin-left: 240px;
   padding: 20px 100px;
 }
+
+.paginator {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  border-top: solid 1px black;
+  border-left: solid 1px black;
+  padding: 5px;
+}
